@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  dev:                        # Custom name of the service/dev environment
+    container_name: ipc_dev   # Custom name of the container
+    build: .                  # Use the DockerFile in the current directory (same directory as the YAML) to build the image
+
+    volumes:
+      - .:/app                # Map the current directory from HOST to /app inside the container
+                              # Changes made on the HOST will immediately be reflected within the container (for dev/test)
+
+    stdin_open: true          # Keep stdin open even if unattached (interactive)
+    tty: true                 # Create a TTY so we can interact via the terminal
