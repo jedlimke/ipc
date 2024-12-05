@@ -17,8 +17,13 @@ Although this project only uses a single container, Docker Compose simplifies th
 ### **Setup Instructions**
 
 1. **Build and Start the Docker Container**:
+   Stay attached:
    ```bash
    docker-compose up --build
+   ```
+   OR do NOT stay attached:
+   ```bash
+   docker-compose up -d --build
    ```
    This will:
    - Build an Ubuntu 22.04-based development container.

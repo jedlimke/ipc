@@ -1,3 +1,7 @@
+# IDE and editor files
+.vscode/
+*.swp
+
 # Prerequisites
 *.d
 
@@ -32,4 +36,4 @@
 *.app
 
 # Build artifacts
-/build/
+/build/*
