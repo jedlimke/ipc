@@ -45,7 +45,12 @@ This project uses GoogleTest for unit testing.
 
 ### Steps to Run the Tests
 
-1. **Build the Test Executable:** Inside the container, navigate to the project directory (`/app`) and run:
+1. **Access the Running Container**:
+   ```bash
+   docker exec -it ipc_dev bash
+   ```
+
+1. **Build the Test Executable:** Navigate to the project directory (`/app`) and run:
    ```bash
    cmake -B build -S .
    cmake --build build
