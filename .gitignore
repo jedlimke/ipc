@@ -37,3 +37,4 @@
 
 # Build artifacts
 /build/*
+/clean/*

@@ -1,95 +1,118 @@
 #include <gtest/gtest.h>
 #include "../include/rx.h"
 
-// Test deserialization of a valid message
-TEST(RxTests, ParseValidMessage) {
-    // Arrange: Define a valid serialized message
-    std::string input = "1|3.14|Hello, IPC!|1";  // ID, float, string, enum
+/**
+ * @brief Test handling of a valid serialized message with all fields populated.
+ */
+TEST(RxTests, HandleValidMessage) {
+    // Arrange: Prepare a valid IPCData object and serialize it
+    IPCData data;
+    data.set_the_int(42);
+    data.set_the_float(3.14f);
+    data.set_the_string("Hello, Rx!");
+    data.set_the_type(IPCData::TYPE2);
 
-    // Act: Deserialize the message
-    IPCData data = deserialize(input);
+    std::string serialized;
+    ASSERT_TRUE(data.SerializeToString(&serialized)) << "Failed to serialize IPCData.";
 
-    // Assert: Verify the result matches the expected structure
-    EXPECT_EQ(data.theInt, 1);
-    EXPECT_FLOAT_EQ(data.theFloat, 3.14f);
-    EXPECT_EQ(data.theString, "Hello, IPC!");
-    EXPECT_EQ(data.theType, IPCData::TYPE2);  // Enum type 1 maps to TYPE2
+    // Act: Process the serialized message
+    T_IPCData result = handleRxMessage(serialized);
+
+    // Assert: Verify the returned T_IPCData structure
+    ASSERT_TRUE(result.theInt.has_value());
+    EXPECT_EQ(result.theInt.value(), 42);
+
+    ASSERT_TRUE(result.theFloat.has_value());
+    EXPECT_FLOAT_EQ(result.theFloat.value(), 3.14f);
+
+    ASSERT_TRUE(result.theString.has_value());
+    EXPECT_EQ(result.theString.value(), "Hello, Rx!");
+
+    ASSERT_TRUE(result.theType.has_value());
+    EXPECT_EQ(result.theType.value(), IPCData::TYPE2);
 }
 
-// Test handling of a message with non-numeric values in numeric fields
-TEST(RxTests, HandleNonNumericFields_badInt) {
-    // Arrange: Define a serialized message with a non-numeric int value
-    std::string input = "NotAnythingWeCanParseToInt|1.2|Valid string|1";
+/**
+ * @brief Test handling of an empty serialized message.
+ */
+TEST(RxTests, HandleEmptyMessage) {
+    // Arrange: Prepare an empty IPCData object
+    IPCData data;
+    std::string serialized;
+    ASSERT_TRUE(data.SerializeToString(&serialized)) << "Failed to serialize empty IPCData.";
 
-    // Act & Assert: Expect std::invalid_argument
+    // Act: Process the serialized message
+    T_IPCData result = handleRxMessage(serialized);
+
+    // Assert: Verify that all fields in T_IPCData are std::nullopt
+    EXPECT_FALSE(result.theInt.has_value());
+    EXPECT_FALSE(result.theFloat.has_value());
+    EXPECT_FALSE(result.theString.has_value());
+    EXPECT_FALSE(result.theType.has_value());
+}
+
+/**
+ * @brief Test handling of corrupted serialized input.
+ */
+TEST(RxTests, HandleCorruptedMessage) {
+    // Arrange: Prepare an invalid serialized string
+    std::string corruptedMessage = "invalid_data";
+
+    // Act & Assert: Verify that the function throws an exception
     EXPECT_THROW({
-        IPCData data = deserialize(input);
-    }, std::invalid_argument);
+        handleRxMessage(corruptedMessage);
+    }, std::runtime_error);
 }
 
-// Test handling of a message with non-numeric values in numeric fields
-TEST(RxTests, HandleNonNumericFields_badFloat) {
-    // Arrange: Define a serialized message with a non-numeric float value
-    std::string input = "5|NotAnythingWeCanParseToFloat|Valid string|1";
+/**
+ * @brief Test handling of a partially populated serialized message.
+ */
+TEST(RxTests, HandlePartiallyPopulatedMessage) {
+    // Arrange: Prepare a partially populated IPCData object
+    IPCData data;
+    data.set_the_int(123);  // Only this field is set
+    std::string serialized;
+    ASSERT_TRUE(data.SerializeToString(&serialized)) << "Failed to serialize partial IPCData.";
 
-    // Act & Assert: Expect std::invalid_argument
-    EXPECT_THROW({
-        IPCData data = deserialize(input);
-    }, std::invalid_argument);
+    // Act: Process the serialized message
+    T_IPCData result = handleRxMessage(serialized);
+
+    // Assert: Verify that only theInt is populated
+    ASSERT_TRUE(result.theInt.has_value());
+    EXPECT_EQ(result.theInt.value(), 123);
+
+    EXPECT_FALSE(result.theFloat.has_value());
+    EXPECT_FALSE(result.theString.has_value());
+    EXPECT_FALSE(result.theType.has_value());
 }
 
-// Test deserialization of a valid message that happens to have funky characters in the string
-TEST(RxTests, ParseValidMessageWithFunkyString) {
-    // Arrange: Define a serialized message with funky characters
-    std::string input = "2|42.42|This is a test with \\| delimiters and \\\\slashes|2";
+/**
+ * @brief Test handling of valid serialized message with edge case values.
+ */
+TEST(RxTests, HandleMessageWithEdgeCaseValues) {
+    // Arrange: Prepare an IPCData object with edge case values
+    IPCData data;
+    data.set_the_int(0);                // Edge case: zero integer
+    data.set_the_float(-0.0f);          // Edge case: negative zero
+    data.set_the_string("");            // Edge case: empty string
+    data.set_the_type(IPCData::TYPE3);  // Edge case: highest enum value
 
-    // Act: Deserialize the message
-    IPCData data = deserialize(input);
+    std::string serialized;
+    ASSERT_TRUE(data.SerializeToString(&serialized)) << "Failed to serialize edge case IPCData.";
 
-    // Assert: Verify the funky string is parsed correctly
-    EXPECT_EQ(data.theInt, 2);
-    EXPECT_FLOAT_EQ(data.theFloat, 42.42f);
-    EXPECT_EQ(data.theString, "This is a test with | delimiters and \\slashes");
-    EXPECT_EQ(data.theType, IPCData::TYPE3);
-}
+    // Act: Process the serialized message
+    T_IPCData result = handleRxMessage(serialized);
 
-// Test handling of an invalid message
-TEST(RxTests, HandleInvalidMessage) {
-    // Arrange: Define an invalid serialized message (missing a field)
-    std::string input = "3|100.0|Incomplete";
+    // Assert: Verify the edge case values
+    ASSERT_TRUE(result.theInt.has_value());
+    EXPECT_EQ(result.theInt.value(), 0);
 
-    // Act & Assert: Deserialize should throw an exception or indicate an error
-    EXPECT_THROW(deserialize(input), std::runtime_error);
-}
+    ASSERT_TRUE(result.theFloat.has_value());
+    EXPECT_FLOAT_EQ(result.theFloat.value(), -0.0f);
 
-// Test handling of a message with too few delimiters
-TEST(RxTests, HandleTooFewDelimiters) {
-    // Arrange: Define a serialized message short on delimiters
-    std::string input = "3|100.0";
+    ASSERT_TRUE(result.theString.has_value());
+    EXPECT_EQ(result.theString.value(), "");
 
-    // Act & Assert: Ensure an exception is thrown with the correct error message
-    try {
-        IPCData data = deserialize(input);
-        FAIL() << "Expected std::runtime_error";
-    } catch (const std::runtime_error& e) {
-        EXPECT_EQ(e.what(), std::string("Invalid message: incorrect number of fields in input"));
-    } catch (...) {
-        FAIL() << "Expected std::runtime_error, but got a different exception";
-    }
-}
-
-// Test handling of a message with too many delimiters
-TEST(RxTests, HandleTooManyDelimiters) {
-    // Arrange: Define a serialized message with extra delimiters
-    std::string input = "3|100.0|Extra|Delimiters|Are|Invalid|2";
-
-    // Act & Assert: Ensure an exception is thrown with the correct error message
-    try {
-        IPCData data = deserialize(input);
-        FAIL() << "Expected std::runtime_error";
-    } catch (const std::runtime_error& e) {
-        EXPECT_EQ(e.what(), std::string("Invalid message: incorrect number of fields in input"));
-    } catch (...) {
-        FAIL() << "Expected std::runtime_error, but got a different exception";
-    }
+    ASSERT_TRUE(result.theType.has_value());
+    EXPECT_EQ(result.theType.value(), IPCData::TYPE3);
 }
