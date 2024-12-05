@@ -77,3 +77,7 @@ This project uses GoogleTest for unit testing.
    [==========] 3 tests from 1 test suite ran. (3 ms total)
    [  PASSED  ] 3 tests.
    ```
+
+## Data Structure Contract
+
+The sender (Tx) and receiver (Rx) communicate using a shared `IPCData` structure defined in `include/ipc_data.h`. This structure ensures that both sides use the same definition for the data being transmitted.
