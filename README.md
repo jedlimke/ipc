@@ -77,3 +77,32 @@ This project uses GoogleTest for unit testing.
    [==========] 3 tests from 1 test suite ran. (3 ms total)
    [  PASSED  ] 3 tests.
    ```
+
+## Data Structure Contract
+
+The sender (Tx) and receiver (Rx) communicate using a shared `IPCData` structure defined in `proto/ipc_data.proto`. This structure ensures that both sides use the same definition for the data being transmitted.
+
+## Protobuf Integration
+
+> **Note**  
+> The Protobuf compiler (`protoc`) is invoked automatically during the build process via the `protobuf_generate_cpp` function in `CMakeLists.txt`. You should not need to run the Protobuf compiler manually.
+
+### Auto-Generation of Protobuf Files
+
+The project is configured to automatically generate the required `.pb.h` and `.pb.cc` files from the `.proto` schema whenever you build the project using CMake.
+
+### Manual Protobuf Compilation
+
+If for any reason you need to manually compile `.proto` files, use the following command:
+```bash
+protoc --cpp_out=./include proto/ipc_data.proto
+```
+This will:
+- `--cpp_out=./include`: Specifies the output directory for the generated files.
+- `proto/ipc_data.proto`: Path to the `.proto` file defining the schema.
+
+Make sure to re-run the build process after manual compilation to ensure all components are up to date:
+```bash
+cmake -B build -S .
+cmake --build build
+```

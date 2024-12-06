@@ -37,3 +37,5 @@
 
 # Build artifacts
 /build/*
+/clean*
+/protobuf-*
