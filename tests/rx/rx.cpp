@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../include/rx.h"
+#include "../../src/rx/rx.h"
 
 /**
  * @brief Test handling of a valid serialized message with all fields populated.

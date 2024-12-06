@@ -58,29 +58,56 @@ target_link_libraries(proto_generated_lib PUBLIC ${Protobuf_LIBRARIES})
 
 
 
-### COMMON LIBRARY
-# rx_lib is a shared library containing the app's core logic (src/rx.cpp)
-# It links with the Protobuf library to handle serialization
-add_library(rx_lib src/rx.cpp)
+### RX COMPONENT
+# Define RX sources
+set(RX_SOURCES
+    src/rx/main_rx.cpp
+    src/rx/rx.cpp
+)
+
+# RX Library
+add_library(rx_lib src/rx/rx.cpp)
 target_link_libraries(rx_lib proto_generated_lib rt)
 target_include_directories(rx_lib PUBLIC include)
 
-
-
-### RX APPLICATION
-# The main executable for the Rx app
-# src/main_rx.cpp is the entry point
-add_executable(main_rx src/main_rx.cpp)
-# Link the Rx application with the shared rx_lib.
+# RX Executable
+add_executable(main_rx ${RX_SOURCES})
 target_link_libraries(main_rx rx_lib)
 
 
 
-### TESTING SETUP
-# The test_rx executable is used to run unit tests for the Rx app
-add_executable(test_rx tests/rx.cpp)
-# Link the test_rx executable with:
-# - rx_lib for application logic
-# - gtest and gtest_main for the testing framework
-# - pthread for threading (required by GoogleTest)
-target_link_libraries(test_rx rx_lib gtest gtest_main pthread)
+# ### TX COMPONENT
+# # Define TX sources
+# set(TX_SOURCES
+#     src/tx/main_tx.cpp
+#     src/tx/tx.cpp
+# )
+
+# # TX Library
+# add_library(tx_lib src/tx/tx.cpp)
+# target_link_libraries(tx_lib proto_generated_lib rt)
+# target_include_directories(tx_lib PUBLIC include)
+
+# # TX Executable
+# add_executable(main_tx ${TX_SOURCES})
+# target_link_libraries(main_tx tx_lib)
+
+
+
+### TESTS
+# Define test sources
+set(TEST_RX_SOURCES
+    tests/rx/rx.cpp
+)
+
+# set(TEST_TX_SOURCES
+#     tests/tx/tx.cpp
+# )
+
+# RX Tests
+add_executable(rx_test ${TEST_RX_SOURCES} src/rx/rx.cpp ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.cc)
+target_link_libraries(rx_test rx_lib gtest gtest_main pthread)
+
+# # TX Tests
+# add_executable(tx_test ${TEST_TX_SOURCES} src/tx/tx.cpp ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.cc)
+# target_link_libraries(tx_test tx_lib gtest gtest_main pthread)

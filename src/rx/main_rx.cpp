@@ -20,7 +20,7 @@ void show_spinner() {
     const std::string dots[] = {"⠙", "⠸", "⠴", "⠦", "⠧", "⠇", "⠋"};
     static int position = 0;
 
-    std::cout << "\rWaiting for messages... \033[32m" << dots[position++] << " \033[0m" << std::flush;
+    std::cout << "\r\033[32m" << dots[position++] << " \033[0m Waiting for messages..." << std::flush;
     position %= sizeof(dots) / sizeof(dots[0]);
 
     usleep(100000); // 100 ms delay
