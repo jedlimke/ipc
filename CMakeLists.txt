@@ -24,6 +24,15 @@ FetchContent_MakeAvailable(googletest)
 
 
 ### PROTOBUF for serialization
+# Manually specify Protobuf paths that correspond to the specific version we installed, e.g. 3.15.8
+set(Protobuf_INCLUDE_DIR /usr/local/include)
+set(Protobuf_LIBRARIES /usr/local/lib/libprotobuf.so)
+set(Protobuf_PROTOC_EXECUTABLE /usr/local/bin/protoc)
+
+# Include Protobuf directories
+include_directories(${Protobuf_INCLUDE_DIR})
+link_directories(/usr/local/lib)
+
 # Find Protobuf library
 find_package(Protobuf REQUIRED)
 
@@ -42,10 +51,10 @@ add_custom_command(
   COMMENT "Generating Protobuf files"
 )
 
-# Add the generated Protobuf files to a library
-add_library(proto_lib ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.h)
-target_include_directories(proto_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(proto_lib PUBLIC protobuf::libprotobuf)
+# Add the generated Protobuf files to a library with a unique name
+add_library(proto_generated_lib ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.h)
+target_include_directories(proto_generated_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(proto_generated_lib PUBLIC ${Protobuf_LIBRARIES})
 
 
 
@@ -53,7 +62,7 @@ target_link_libraries(proto_lib PUBLIC protobuf::libprotobuf)
 # rx_lib is a shared library containing the app's core logic (src/rx.cpp)
 # It links with the Protobuf library to handle serialization
 add_library(rx_lib src/rx.cpp)
-target_link_libraries(rx_lib proto_lib rt protobuf::libprotobuf)
+target_link_libraries(rx_lib proto_generated_lib rt)
 target_include_directories(rx_lib PUBLIC include)
 
 
@@ -61,9 +70,9 @@ target_include_directories(rx_lib PUBLIC include)
 ### RX APPLICATION
 # The main executable for the Rx app
 # src/main_rx.cpp is the entry point
-add_executable(rx src/main_rx.cpp)
+add_executable(main_rx src/main_rx.cpp)
 # Link the Rx application with the shared rx_lib.
-target_link_libraries(rx rx_lib)
+target_link_libraries(main_rx rx_lib)
 
 
 
