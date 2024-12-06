@@ -6,10 +6,7 @@
 #include <ctime>
 #include <unistd.h> // For usleep
 #include "ipc_data.pb.h"
-
-#define QUEUE_NAME "/ipc_queue"
-#define MAX_MESSAGE_SIZE 1024
-#define QUEUE_PERMISSIONS 0660
+#include "contract.h" // Include the shared contract
 
 volatile sig_atomic_t stop = 0;
 
