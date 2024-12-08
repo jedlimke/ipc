@@ -38,7 +38,7 @@ Although this project only uses a single container, Docker Compose simplifies th
 
 ## Running Applications
 
-### Running the Transmitter ([`main_tx`](./apps/main_tx))
+### Running the Transmitter ([`main_tx`](./apps/main_tx.cpp))
 
 1. **Access the Running Container**:
    ```bash
@@ -58,7 +58,7 @@ Although this project only uses a single container, Docker Compose simplifies th
    ```
    This will send data to the receiver using IPC.
 
-### Running the Receiver ([`main_rx`](./apps/main_rx))
+### Running the Receiver ([`main_rx`](./apps/main_rx.cpp))
 
 1. **Access the Running Container**:
    ```bash
@@ -106,7 +106,7 @@ This project uses GoogleTest for unit testing.
 
 ## Queue Constants
 
-The constants that define the queue properties, such as name and size, are located in [`/shared/constants.h`](./shared/constants.h). This file ensures both the transmitter ([`main_tx`](./apps/main_tx)) and receiver ([`main_rx`](./apps/main_rx)) share the same queue definition. Modify this file if you need to adjust the queue properties.
+The constants that define the queue properties, such as name and size, are located in [`/shared/constants.h`](./shared/constants.h). This file ensures both the transmitter ([`main_tx`](./apps/main_tx.cpp)) and receiver ([`main_rx`](./apps/main_rx.cpp)) share the same queue definition. Modify this file if you need to adjust the queue properties.
 
 ## Data Structure Contract
 
