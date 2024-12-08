@@ -2,8 +2,6 @@
 
 This project demonstrates inter-process communication (IPC) in C++ using POSIX message queues. The setup includes a Dockerized Ubuntu 22.04 environment as requested. The development environment goes hand-in-hand with the container, allowing direct development within Ubuntu from any external HOST platform.
 
----
-
 ## Getting Started
 
 ### Why Docker Compose?
@@ -12,7 +10,6 @@ Although this project only uses a single container, Docker Compose simplifies th
 - Automating container creation and configuration.
 - Mapping the project directory into the container for seamless code editing.
 - Providing a single command to build and run the environment.
-
 
 ### Setup Instructions
 
@@ -39,6 +36,49 @@ Although this project only uses a single container, Docker Compose simplifies th
    docker-compose down
    ```
 
+## Running Applications
+
+### Running the Transmitter ([`main_tx`](./apps/main_tx))
+
+1. **Access the Running Container**:
+   ```bash
+   docker exec -it ipc_dev bash
+   ```
+
+1. **Build the Application**:
+   ```bash
+   cmake -B build -S .
+   cmake --build build
+   ```
+
+1. **Run the Transmitter**:
+   Inside the container:
+   ```bash
+   ./build/apps/main_tx
+   ```
+   This will send data to the receiver using IPC.
+
+### Running the Receiver ([`main_rx`](./apps/main_rx))
+
+1. **Access the Running Container**:
+   ```bash
+   docker exec -it ipc_dev bash
+   ```
+
+1. **Build the Application**:
+   (If not already built during the transmitter steps)
+   ```bash
+   cmake -B build -S .
+   cmake --build build
+   ```
+
+1. **Run the Receiver**:
+   Inside the container:
+   ```bash
+   ./build/apps/main_rx
+   ```
+   The receiver will listen for messages and process them as they arrive.
+
 ## Running Tests
 
 This project uses GoogleTest for unit testing.
@@ -50,59 +90,36 @@ This project uses GoogleTest for unit testing.
    docker exec -it ipc_dev bash
    ```
 
-1. **Build the Test Executable:** Navigate to the project directory (`/app`) and run:
+1. **Build the Test Executable**:
+   Navigate to the project directory (`/app`) and run:
    ```bash
    cmake -B build -S .
    cmake --build build
    ```
 
-1. **Run the Tests:** After building, execute the test binary:
+1. **Run the Tests**:
+   After building, execute the test binary:
    ```bash
-   ./build/test_rx
+   ./build/test_t_ipc_data
    ```
-   Output should be something like:
-   ```bash
-   [==========] Running 3 tests from 1 test suite.
-   [----------] Global test environment set-up.
-   [----------] 3 tests from RxTests
-   [ RUN      ] RxTests.AddPositiveNumbers
-   [       OK ] RxTests.AddPositiveNumbers (0 ms)
-   [ RUN      ] RxTests.AddNegativeNumbers
-   [       OK ] RxTests.AddNegativeNumbers (0 ms)
-   [ RUN      ] RxTests.AddMixedNumbers
-   [       OK ] RxTests.AddMixedNumbers (0 ms)
-   [----------] 3 tests from RxTests (1 ms total)
+   You should see output confirming that the tests pass successfully.
 
-   [----------] Global test environment tear-down
-   [==========] 3 tests from 1 test suite ran. (3 ms total)
-   [  PASSED  ] 3 tests.
-   ```
+## Queue Constants
+
+The constants that define the queue properties, such as name and size, are located in [`/shared/constants.h`](./shared/constants.h). This file ensures both the transmitter ([`main_tx`](./apps/main_tx)) and receiver ([`main_rx`](./apps/main_rx)) share the same queue definition. Modify this file if you need to adjust the queue properties.
 
 ## Data Structure Contract
 
-The sender (Tx) and receiver (Rx) communicate using a shared `IPCData` structure defined in `proto/ipc_data.proto`. This structure ensures that both sides use the same definition for the data being transmitted.
+The sender (Tx) and receiver (Rx) communicate using a shared `IPCData` structure defined in [`/shared/proto/ipc_data.proto`](./shared/proto/ipc_data.proto). This structure ensures that both sides use the same definition for the data being transmitted.
 
 ## Protobuf Integration
 
-> **Note**  
-> The Protobuf compiler (`protoc`) is invoked automatically during the build process via the `protobuf_generate_cpp` function in `CMakeLists.txt`. You should not need to run the Protobuf compiler manually.
+The Protobuf compiler (`protoc`) is explicitly invoked during the build process using a custom CMake command. The project defines the `.proto` schema in [`/shared/proto/ipc_data.proto`](./shared/proto/ipc_data.proto), and the following steps occur automatically:
 
-### Auto-Generation of Protobuf Files
+1. The Protobuf files are compiled with `protoc` into `.pb.h` and `.pb.cc` files.
+1. These files are placed in the build directory.
+1. A library (`proto_generated_lib`) is created from the compiled Protobuf files and linked to the project.
 
-The project is configured to automatically generate the required `.pb.h` and `.pb.cc` files from the `.proto` schema whenever you build the project using CMake.
+If you modify the `.proto` file, these changes will be incorporated during the next build. You do not need to manually invoke the Protobuf compiler, as the CMake configuration handles everything automatically.
 
-### Manual Protobuf Compilation
-
-If for any reason you need to manually compile `.proto` files, use the following command:
-```bash
-protoc --cpp_out=./include proto/ipc_data.proto
-```
-This will:
-- `--cpp_out=./include`: Specifies the output directory for the generated files.
-- `proto/ipc_data.proto`: Path to the `.proto` file defining the schema.
-
-Make sure to re-run the build process after manual compilation to ensure all components are up to date:
-```bash
-cmake -B build -S .
-cmake --build build
-```
+For reference, see the Protobuf-related configuration in [`CMakeLists.txt`](./CMakeLists.txt).
