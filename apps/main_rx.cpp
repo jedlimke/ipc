@@ -1,11 +1,10 @@
 #include <iostream>
 #include <mqueue.h>
-#include <cstring>
-#include <cstdlib>
 #include <csignal>
+#include <cstring>
 #include <unistd.h> // For usleep
-#include "rx.h"
-#include "contract.h"
+#include "t_ipc_data.h"
+#include "constants.h"
 
 // Signal handler for Ctrl+C
 volatile sig_atomic_t stop = 0;
@@ -24,21 +23,15 @@ void show_dots_spinner() {
     usleep(100000); // 100 ms delay
 }
 
-// Print T_IPCData fields
-void print_data(const T_IPCData& data) {
-    std::cout << "Received Message:\n";
-
-    std::cout << "  Int:    " << (data.theInt    ? std::to_string(*data.theInt)                    : "Not set") << std::endl;
-    std::cout << "  Float:  " << (data.theFloat  ? std::to_string(*data.theFloat)                  : "Not set") << std::endl;
-    std::cout << "  String: " << (data.theString ? *data.theString                                 : "Not set") << std::endl;
-    std::cout << "  Type:   " << (data.theType   ? std::to_string(static_cast<int>(*data.theType)) : "Not set") << std::endl;
-}
-
 // Process a single message from the queue
 void process_message(const char* buffer, ssize_t size) {
     std::string serializedMessage(buffer, size);
-    T_IPCData data = handleRxMessage(serializedMessage);
-    print_data(data);
+    try {
+        T_IPCData data(serializedMessage); // Deserialize directly using the constructor
+        std::cout << "Received Message:\n" << data.ToString();
+    } catch (const std::exception& e) {
+        std::cerr << "Error processing message: " << e.what() << std::endl;
+    }
 }
 
 int main() {
