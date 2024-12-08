@@ -59,7 +59,6 @@ target_link_libraries(proto_generated_lib PUBLIC ${Protobuf_LIBRARIES})
 
 
 ### SHARED LIBRARY (T_IPCData)
-# Shared library for T_IPCData
 add_library(t_ipc_data_lib
     shared/t_ipc_data.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ipc_data.pb.cc
@@ -69,8 +68,16 @@ target_include_directories(t_ipc_data_lib PUBLIC shared)
 
 
 
+### SHARED LIBRARY (UTIL)
+# Shared library for utility functions
+add_library(util_lib
+    shared/util.cpp
+)
+target_include_directories(util_lib PUBLIC shared)
+
+
+
 ### TESTS
-# Define test sources
 set(TEST_SOURCES
     tests/t_ipc_data.cpp
 )
@@ -82,7 +89,13 @@ target_include_directories(test_t_ipc_data PUBLIC shared)
 
 
 ### RX COMPONENT
-# RX Executable
 add_executable(main_rx apps/main_rx.cpp)
-target_link_libraries(main_rx t_ipc_data_lib rt)
+target_link_libraries(main_rx util_lib t_ipc_data_lib rt)
 target_include_directories(main_rx PUBLIC shared)
+
+
+
+### TX COMPONENT
+add_executable(main_tx apps/main_tx.cpp)
+target_link_libraries(main_tx util_lib t_ipc_data_lib rt)
+target_include_directories(main_tx PUBLIC shared)
