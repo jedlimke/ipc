@@ -1,13 +1,13 @@
 syntax = "proto3";
 
 message IPCData {
-    optional int32 the_int       = 1;
-    optional float the_float     = 2;
+    optional int32  the_int      = 1;
+    optional float  the_float    = 2;
     optional string the_string   = 3;
     enum Type {
         TYPE1 = 0;
         TYPE2 = 1;
         TYPE3 = 2;
     }
-    optional Type the_type       = 4;
+    optional Type   the_type     = 4;
 }
