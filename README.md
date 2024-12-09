@@ -26,12 +26,12 @@ Although this project only uses a single container, Docker Compose simplifies th
    - Build an Ubuntu 22.04-based development container.
    - Map the project directory into the container under `/app`.
 
-1. **Access the Running Container**:
+2. **Access the Running Container**:
    ```bash
    docker exec -it ipc_dev bash
    ```
 
-1. **Stop the Container**:
+3. **Stop the Container**:
    ```bash
    docker-compose down
    ```
@@ -45,13 +45,13 @@ Although this project only uses a single container, Docker Compose simplifies th
    docker exec -it ipc_dev bash
    ```
 
-1. **Build the Application**:
+2. **Build the Application**:
    ```bash
    cmake -B build -S .
    cmake --build build
    ```
 
-1. **Run the Transmitter**:
+3. **Run the Transmitter**:
    Inside the container:
    ```bash
    ./build/apps/main_tx
@@ -65,14 +65,14 @@ Although this project only uses a single container, Docker Compose simplifies th
    docker exec -it ipc_dev bash
    ```
 
-1. **Build the Application**:
+2. **Build the Application**:
    (If not already built during the transmitter steps)
    ```bash
    cmake -B build -S .
    cmake --build build
    ```
 
-1. **Run the Receiver**:
+3. **Run the Receiver**:
    Inside the container:
    ```bash
    ./build/apps/main_rx
@@ -83,21 +83,35 @@ Although this project only uses a single container, Docker Compose simplifies th
 
 This project uses GoogleTest for unit testing.
 
-### Steps to Run the Tests
+### Preferred Method: Using GitHub Actions and `act`
+
+1. **GitHub Actions**:
+   - Tests are automatically run via GitHub Actions whenever changes are pushed to the repository or a pull request is created.
+   - The CI workflow builds the Docker image, compiles the project, and runs the tests inside a containerized environment.
+
+2. **Run Tests Locally Using `act`**:
+   - Install `act` ([GitHub repository](https://github.com/nektos/act)) to simulate GitHub Actions workflows locally.
+   - Run the workflow:
+     ```bash
+     act -j test
+     ```
+   - Ensure Docker is running and `act` is configured correctly (e.g., specifying the container architecture if using an Apple M-series chip).
+
+### Alternative: Manual Steps
 
 1. **Access the Running Container**:
    ```bash
    docker exec -it ipc_dev bash
    ```
 
-1. **Build the Test Executable**:
+2. **Build the Test Executable**:
    Navigate to the project directory (`/app`) and run:
    ```bash
    cmake -B build -S .
    cmake --build build
    ```
 
-1. **Run the Tests**:
+3. **Run the Tests**:
    After building, execute the test binary:
    ```bash
    ./build/test_t_ipc_data
@@ -117,8 +131,8 @@ The sender (Tx) and receiver (Rx) communicate using a shared `IPCData` structure
 The Protobuf compiler (`protoc`) is explicitly invoked during the build process using a custom CMake command. The project defines the `.proto` schema in [`/shared/proto/ipc_data.proto`](./shared/proto/ipc_data.proto), and the following steps occur automatically:
 
 1. The Protobuf files are compiled with `protoc` into `.pb.h` and `.pb.cc` files.
-1. These files are placed in the build directory.
-1. A library (`proto_generated_lib`) is created from the compiled Protobuf files and linked to the project.
+2. These files are placed in the build directory.
+3. A library (`proto_generated_lib`) is created from the compiled Protobuf files and linked to the project.
 
 If you modify the `.proto` file, these changes will be incorporated during the next build. You do not need to manually invoke the Protobuf compiler, as the CMake configuration handles everything automatically.
 
