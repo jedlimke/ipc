@@ -49,10 +49,10 @@ void show_dots_spinner() {
 T_IPCData generate_random_data() {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<int> int_dist(0, 100);
+    static std::uniform_int_distribution<int>    int_dist  (0,    100);
     static std::uniform_real_distribution<float> float_dist(0.0f, 100.0f);
-    static std::uniform_int_distribution<int> enum_dist(0, 2);
-    static std::uniform_int_distribution<int> chance(0, 99);
+    static std::uniform_int_distribution<int>    enum_dist (0,      2);
+    static std::uniform_int_distribution<int>    chance    (0,     99);
 
     // Determine how many fields are set based on probability
     int random_chance = chance(gen);
@@ -63,16 +63,16 @@ T_IPCData generate_random_data() {
         if (field_to_set == 0) return T_IPCData{int_dist(gen), std::nullopt, std::nullopt, std::nullopt};
         if (field_to_set == 1) return T_IPCData{std::nullopt, float_dist(gen), std::nullopt, std::nullopt};
         if (field_to_set == 2) return T_IPCData{std::nullopt, std::nullopt, "RandomString", std::nullopt};
-        return T_IPCData{std::nullopt, std::nullopt, std::nullopt, static_cast<IPCData::Type>(enum_dist(gen))};
+        return T_IPCData {std::nullopt, std::nullopt, std::nullopt, static_cast<IPCData::Type>(enum_dist(gen))};
     } else if (random_chance < 50) { // 25% chance 3/4 values are set
-        return T_IPCData{
+        return T_IPCData {
             int_dist(gen), 
             float_dist(gen), 
             util::getCurrentDateTimeWithMilliseconds(), 
             std::nullopt
         };
     } else { // 50% chance all values are set
-        return T_IPCData{
+        return T_IPCData {
             int_dist(gen), 
             float_dist(gen), 
             util::getCurrentDateTimeWithMilliseconds(), 
@@ -126,12 +126,13 @@ int main() {
             std::cerr << "\nError: " << e.what() << "\n";
         }
 
-        for (int i = 0; i < 10 && !stop; ++i) {
+        for (int i = 0; i < 20 && !stop; ++i) {
             show_dots_spinner();
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
     std::cout << "\nTx process terminated.\n";
+
     return 0;
 }

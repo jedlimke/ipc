@@ -129,7 +129,7 @@ TEST(TIPCDataTests, HandleIntMin) {
 
     // Act: Serialize and then deserialize the object
     std::string serializedMessage = data.Serialize();
-    auto deserializedData = T_IPCData { serializedMessage };
+    T_IPCData deserializedData { serializedMessage };
 
     // Assert: Ensure deserialized data matches the original
     EXPECT_EQ(deserializedData.GetTheInt().value(), std::numeric_limits<int>::min());
@@ -151,7 +151,7 @@ TEST(TIPCDataTests, HandleIntMax) {
 
     // Act: Serialize and then deserialize the object
     std::string serializedMessage = data.Serialize();
-    auto deserializedData = T_IPCData { serializedMessage };
+    T_IPCData deserializedData { serializedMessage };
 
     // Assert: Ensure deserialized data matches the original
     EXPECT_EQ(deserializedData.GetTheInt().value(), std::numeric_limits<int>::max());
@@ -166,14 +166,14 @@ TEST(TIPCDataTests, HandleFloatMax) {
     // Arrange: Create a T_IPCData object with the largest possible float
     T_IPCData data(
         std::nullopt,
-        std::make_optional(std::numeric_limits<float>::max()), // Largest float
+        std::make_optional(std::numeric_limits<float>::max()),
         std::nullopt,
         std::nullopt
     );
 
     // Act: Serialize and then deserialize the object
     std::string serializedMessage = data.Serialize();
-    auto deserializedData = T_IPCData { serializedMessage };
+    T_IPCData deserializedData { serializedMessage };
 
     // Assert: Ensure deserialized data matches the original
     EXPECT_FLOAT_EQ(deserializedData.GetTheFloat().value(), std::numeric_limits<float>::max());
@@ -188,7 +188,7 @@ TEST(TIPCDataTests, HandleFloatMin) {
     // Arrange: Create a T_IPCData object with the smallest possible float
     T_IPCData data(
         std::nullopt,
-        std::make_optional(std::numeric_limits<float>::lowest()), // Smallest float
+        std::make_optional(std::numeric_limits<float>::lowest()),
         std::nullopt,
         std::nullopt
     );
@@ -209,7 +209,7 @@ TEST(TIPCDataTests, HandleFloatMin) {
 TEST(TIPCDataTests, HandleInvalidEnum) {
     // Arrange: Create a Protobuf message with an invalid enum value
     IPCData proto;
-    proto.set_the_type(static_cast<IPCData::Type>(999)); // Invalid enum value
+    proto.set_the_type(static_cast<IPCData::Type>(999));
     std::string serializedMessage;
     ASSERT_TRUE(proto.SerializeToString(&serializedMessage));
 

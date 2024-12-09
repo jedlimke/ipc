@@ -51,7 +51,7 @@ void process_message(const char* buffer, ssize_t size) {
 
     try {
         // Deserialize message into T_IPCData
-        T_IPCData data(serializedMessage);
+        T_IPCData data { serializedMessage };
         // Print the deserialized message
         std::cout << "Received Message @ " << util::getCurrentDateTimeWithMilliseconds() << ":\n" << data.ToString() << std::endl;
     } catch (const std::exception& e) {
