@@ -1,4 +1,5 @@
 # IPC Project
+[![Tests](https://github.com/jedlimke/ipc/actions/workflows/tests.yml/badge.svg)](https://github.com/jedlimke/ipc/actions/workflows/tests.yml)
 
 This project demonstrates inter-process communication (IPC) in C++ using POSIX message queues. The setup includes a Dockerized Ubuntu 22.04 environment as requested. The development environment goes hand-in-hand with the container, allowing direct development within Ubuntu from any external HOST platform.
 
