@@ -42,17 +42,11 @@ jobs:
       # and loads it into the local Docker daemon
       run: |
         docker buildx build \
+          --progress=plain \
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache \
           --load \
           -t ipc:latest .
-
-    - name: Debug Cache
-      # This step inspects the cache directory after the Docker build.
-      # It helps confirm that the cache was populated and is working correctly.
-      run: |
-        du -sh /tmp/.buildx-cache || echo "No cache directory found"
-        ls -la /tmp/.buildx-cache
 
     - name: Run tests inside Docker container
       # This step runs the tests inside the Docker container using the built image.
