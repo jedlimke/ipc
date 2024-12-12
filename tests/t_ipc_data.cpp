@@ -219,3 +219,10 @@ TEST(TIPCDataTests, HandleInvalidEnum) {
         std::out_of_range
     );
 }
+
+/**
+ * @brief Failing test on purpose to test GitHub Actions
+ */
+TEST(TIPCDataTests, FailureFailureFailureFailure) {
+    EXPECT_EQ(1, 2); // Intentional failure
+}
