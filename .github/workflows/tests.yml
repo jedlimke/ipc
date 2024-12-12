@@ -32,7 +32,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-docker-${{ github.ref_name }}-
           ${{ runner.os }}-docker-
-        retention-days: 30
       # This step restores cached Docker layers to speed up the build process
       # by avoiding unnecessary rebuilding of unchanged layers.
 
