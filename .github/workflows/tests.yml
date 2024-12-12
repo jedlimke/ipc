@@ -16,22 +16,38 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      # Set up Docker Buildx to support layer caching
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        # Use a cache path for Docker layers
+        path: /tmp/.buildx-cache
+        # Define a cache key based on the OS and commit SHA to identify changes
+        key: ${{ runner.os }}-docker-${{ github.sha }}
+        # Allow fallback to older caches if the exact key isn't found
+        restore-keys: |
+          ${{ runner.os }}-docker-
+
     - name: Build Docker image using repository Dockerfile
+      # Build the Docker image using Buildx and utilize caching
       run: |
-        # Build the Docker image using the Dockerfile in the root of the repository
-        # The image will be tagged as "ipc:latest"
-        docker build -t ipc:latest .
+        docker buildx build \
+          --cache-from=type=local,src=/tmp/.buildx-cache \
+          --cache-to=type=local,dest=/tmp/.buildx-cache \
+          -t ipc:latest .
 
     - name: Run tests inside Docker container
+      # Run the Docker container based on the built image
+      # Mount the repository directory to /app in the container
+      # Execute the following steps inside the container:
+      # 1. Change to the /app directory (where the project is mounted)
+      # 2. Generate build files using cmake, specifying the source and build directories
+      # 3. Compile the project using the generated build files
+      # 4. Execute the test binary located in the build directory
       run: |
-        # Run the Docker container based on the built image
-        # Mount the repository directory to /app in the container
-        # Use GitHub Actions' workspace variable for mounting
-        # Execute the following steps inside the container:
-        # 1. Change to the /app directory (where the project is mounted)
-        # 2. Generate build files using cmake, specifying the source and build directories
-        # 3. Compile the project using the generated build files
-        # 4. Execute the test binary located in the build directory
         docker run --rm -v "${{ github.workspace }}:/app" -w /app ipc:latest /bin/bash -c "
           cmake -B build -S . && \
           cmake --build build && \
