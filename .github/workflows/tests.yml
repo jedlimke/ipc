@@ -15,57 +15,54 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      # This step checks out the repository code so it is available in the workflow
+      # This step checks out the repository code so it is available in the workflow.
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-      # This sets up Docker Buildx, enabling layer caching
-      # Buildx is required for efficient Docker builds and multi-platform support
+      # This step sets up Docker Buildx, enabling advanced features like layer caching.
+      # Buildx is required for efficient Docker builds and multi-platform support.
 
     - name: Restore Docker layer cache
       uses: actions/cache@v3
       with:
-        # Specify the directory where Docker layer cache is stored
         path: /tmp/.buildx-cache
-        # Use a cache key specific to the OS and branch name for broader reuse
-        key: ${{ runner.os }}-docker-${{ github.ref_name }}
-        # Allow fallback to previous caches if the exact key is not found
+        # Include Dockerfile hash in the cache key to invalidate cache when the Dockerfile changes.
+        key: ${{ runner.os }}-docker-${{ github.ref_name }}-${{ hashFiles('Dockerfile') }}
+        # Use fallback restore keys to reuse broader cache data if the exact key is unavailable.
         restore-keys: |
+          ${{ runner.os }}-docker-${{ github.ref_name }}-
           ${{ runner.os }}-docker-
       # This step restores cached Docker layers to speed up the build process
       # by avoiding unnecessary rebuilding of unchanged layers.
 
     - name: Build Docker image using repository Dockerfile
+      # This step builds the Docker image using the repository Dockerfile.
+      # It leverages the restored cache to pull previously built layers,
+      # and it saves new or updated layers back to the cache for future use.
       run: |
-        # Use Docker Buildx to build the Docker image
-        # --cache-from: Pulls cached layers from the restored cache
-        # --cache-to: Saves new or updated layers back to the cache directory
-        # -t ipc:latest: Tags the built image as "ipc:latest"
         docker buildx build \
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache \
           -t ipc:latest .
 
     - name: Debug Cache
+      # This step inspects the cache directory after the Docker build.
+      # It helps confirm that the cache was populated and is working correctly.
       run: |
-        # Debug step to inspect the cache directory after the Docker build
-        # Verifies that Docker layers were saved back to the cache
         du -sh /tmp/.buildx-cache || echo "No cache directory found"
         ls -la /tmp/.buildx-cache
 
     - name: Run tests inside Docker container
+      # This step runs the tests inside the Docker container using the built image.
+      # The container mounts the repository directory to /app and executes the following steps:
+      # 1. Navigate to /app (mounted project directory).
+      # 2. Generate build files using cmake.
+      # 3. Compile the project using the generated build files.
+      # 4. Execute the test binary located in the build directory.
+      # If the tests fail, the workflow will fail.
       run: |
-        # Run the Docker container based on the built image
-        # Mount the repository directory to /app inside the container
-        # Execute the following commands inside the container:
-        # 1. Change to the /app directory (where the project is mounted)
-        # 2. Generate build files using cmake, specifying the source and build directories
-        # 3. Compile the project using the generated build files
-        # 4. Execute the test binary located in the build directory
         docker run --rm -v "${{ github.workspace }}:/app" -w /app ipc:latest /bin/bash -c "
           cmake -B build -S . && \
           cmake --build build && \
           ./build/test_t_ipc_data
         "
-      # This step runs the tests inside the container using the compiled Docker image.
-      # If the tests fail, the workflow will be marked as failed.
