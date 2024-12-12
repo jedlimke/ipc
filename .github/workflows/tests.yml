@@ -15,41 +15,57 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      # This step checks out the repository code so it is available in the workflow
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-      # Set up Docker Buildx to support layer caching
+      # This sets up Docker Buildx, enabling layer caching
+      # Buildx is required for efficient Docker builds and multi-platform support
 
-    - name: Cache Docker layers
+    - name: Restore Docker layer cache
       uses: actions/cache@v3
       with:
-        # Use a cache path for Docker layers
+        # Specify the directory where Docker layer cache is stored
         path: /tmp/.buildx-cache
-        # Define a cache key based on the OS and commit SHA to identify changes
-        key: ${{ runner.os }}-docker-${{ github.sha }}
-        # Allow fallback to older caches if the exact key isn't found
+        # Use a cache key specific to the OS and branch name for broader reuse
+        key: ${{ runner.os }}-docker-${{ github.ref_name }}
+        # Allow fallback to previous caches if the exact key is not found
         restore-keys: |
           ${{ runner.os }}-docker-
+      # This step restores cached Docker layers to speed up the build process
+      # by avoiding unnecessary rebuilding of unchanged layers.
 
     - name: Build Docker image using repository Dockerfile
-      # Build the Docker image using Buildx and utilize caching
       run: |
+        # Use Docker Buildx to build the Docker image
+        # --cache-from: Pulls cached layers from the restored cache
+        # --cache-to: Saves new or updated layers back to the cache directory
+        # -t ipc:latest: Tags the built image as "ipc:latest"
         docker buildx build \
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache \
           -t ipc:latest .
 
-    - name: Run tests inside Docker container
-      # Run the Docker container based on the built image
-      # Mount the repository directory to /app in the container
-      # Execute the following steps inside the container:
-      # 1. Change to the /app directory (where the project is mounted)
-      # 2. Generate build files using cmake, specifying the source and build directories
-      # 3. Compile the project using the generated build files
-      # 4. Execute the test binary located in the build directory
+    - name: Debug Cache
       run: |
+        # Debug step to inspect the cache directory after the Docker build
+        # Verifies that Docker layers were saved back to the cache
+        du -sh /tmp/.buildx-cache || echo "No cache directory found"
+        ls -la /tmp/.buildx-cache
+
+    - name: Run tests inside Docker container
+      run: |
+        # Run the Docker container based on the built image
+        # Mount the repository directory to /app inside the container
+        # Execute the following commands inside the container:
+        # 1. Change to the /app directory (where the project is mounted)
+        # 2. Generate build files using cmake, specifying the source and build directories
+        # 3. Compile the project using the generated build files
+        # 4. Execute the test binary located in the build directory
         docker run --rm -v "${{ github.workspace }}:/app" -w /app ipc:latest /bin/bash -c "
           cmake -B build -S . && \
           cmake --build build && \
           ./build/test_t_ipc_data
         "
+      # This step runs the tests inside the container using the compiled Docker image.
+      # If the tests fail, the workflow will be marked as failed.
