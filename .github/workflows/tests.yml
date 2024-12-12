@@ -38,11 +38,13 @@ jobs:
     - name: Build Docker image using repository Dockerfile
       # This step builds the Docker image using the repository Dockerfile.
       # It leverages the restored cache to pull previously built layers,
-      # and it saves new or updated layers back to the cache for future use.
+      # saves new or updated layers back to the cache for future use,
+      # and loads it into the local Docker daemon
       run: |
         docker buildx build \
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache \
+          --load \
           -t ipc:latest .
 
     - name: Debug Cache
